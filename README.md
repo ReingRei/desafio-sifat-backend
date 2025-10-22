@@ -29,12 +29,20 @@ O Back-End é composto por dois microsserviços que interagem de forma independe
 | **Infra** | Docker & Compose | - | Orquestração do ambiente completo. |
 
 ## 📂 Estrutura do Repositório
-desafio-sifat-backend/ 
-├── product-service/ # Microsserviço principal (CRUD + Produtor Kafka) 
-├── inventory-service/ # Microsserviço de estoque (Consumidor Kafka) 
-├── .gitignore # Arquivos ignorados pelo Git 
-├── docker-compose.yml # Orquestração (MySQL, Kafka, Services) 
-└── README.md # Documentação do Back-End
+desafio-sifat-backend/
+├── inventory-service/
+│   └── src/main/java/br/com/sifat/desafio/inventoryservice
+│   └── src/main/resources
+│   └── pom.xml
+│   └── Dockerfile
+├── product-service/
+│   └── src/main/java/br/com/sifat/desafio/productservice
+│   └── src/main/resources
+│   └── pom.xml
+│   └── Dockerfile
+├── .gitignore
+├── docker-compose.yml
+└── README.md
 
 ---
 
