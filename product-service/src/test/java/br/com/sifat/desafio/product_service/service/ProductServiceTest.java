@@ -1,5 +1,7 @@
 package br.com.sifat.desafio.product_service.service;
 
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -12,9 +14,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
@@ -27,6 +31,7 @@ import br.com.sifat.desafio.product_service.repository.CategoryRepository;
 import br.com.sifat.desafio.product_service.dto.ProductFilterDTO;
 import br.com.sifat.desafio.product_service.dto.ProductRequestDTO;
 import br.com.sifat.desafio.product_service.dto.ProductResponseDTO;
+import br.com.sifat.desafio.product_service.event.ProductEventDTO;
 import br.com.sifat.desafio.product_service.mapper.ProductMapper;
 import br.com.sifat.desafio.product_service.model.Category;
 import br.com.sifat.desafio.product_service.model.Product;
@@ -41,6 +46,9 @@ public class ProductServiceTest {
 
     @Mock
     private ProductMapper productMapper;
+
+    @Mock
+    private KafkaTemplate<String, ProductEventDTO> kafkaTemplate;
 
     @InjectMocks
     private ProductService productService;
@@ -91,6 +99,11 @@ public class ProductServiceTest {
 
             verify(productRepository, times(1)).save(product);
 
+            verify(kafkaTemplate, times(1)).send(
+                    anyString(),
+                    anyString(),
+                    any(ProductEventDTO.class));
+
             verify(productMapper, times(1)).toResponseDTO(product);
         }
 
@@ -112,6 +125,36 @@ public class ProductServiceTest {
 
             verify(productMapper, never()).toEntity(any(), any());
             verify(productRepository, never()).save(any(Product.class));
+        }
+
+        @Test
+        @MockitoSettings(strictness = Strictness.LENIENT)
+        @DisplayName("Lançar RuntimeException quando o Kafka falhar persistentemente e não cometer a transação")
+        public void testCreateProduct_WhenKafkaFailsPersistently_shouldThrowRuntimeExceptionAndNotCommit() {
+
+            Long existentCategoryId = 1L;
+            ProductRequestDTO requestDto = new ProductRequestDTO();
+            requestDto.setCategoryId(existentCategoryId);
+            requestDto.setName("Produto Teste");
+
+            Category fakeCategory = new Category();
+            Product productEntity = new Product();
+
+            when(categoryRepository.findById(existentCategoryId)).thenReturn(Optional.of(fakeCategory));
+            when(productMapper.toEntity(any(ProductRequestDTO.class), any(Category.class))).thenReturn(productEntity);
+            when(productRepository.save(any(Product.class))).thenReturn(productEntity);
+
+            when(kafkaTemplate.send(anyString(), anyString(), any(ProductEventDTO.class)))
+                    .thenThrow(new RuntimeException("Simulando falha fatal no Kafka"));
+
+            assertThrows(RuntimeException.class, () -> {
+                productService.createProduct(requestDto);
+            });
+
+            verify(productRepository, times(1)).save(any(Product.class));
+
+            verify(categoryRepository, times(1)).findById(existentCategoryId);
+            verify(productMapper, times(1)).toEntity(any(ProductRequestDTO.class), any(Category.class));
         }
     }
 
@@ -163,6 +206,10 @@ public class ProductServiceTest {
 
             verify(productRepository, times(1)).findById(productId);
             verify(categoryRepository, times(1)).findById(2L);
+            verify(kafkaTemplate, times(1)).send(
+                    anyString(),
+                    anyString(),
+                    any(ProductEventDTO.class));
             verify(productRepository, times(1)).save(existingProduct);
             verify(productMapper, times(1)).toResponseDTO(updatedProduct);
         }
@@ -238,6 +285,10 @@ public class ProductServiceTest {
 
             productService.deleteProduct(productId);
 
+            verify(kafkaTemplate, times(1)).send(
+                    anyString(),
+                    anyString(),
+                    any(ProductEventDTO.class));
             verify(productRepository, times(1)).existsById(productId);
             verify(productRepository, times(1)).deleteById(productId);
         }

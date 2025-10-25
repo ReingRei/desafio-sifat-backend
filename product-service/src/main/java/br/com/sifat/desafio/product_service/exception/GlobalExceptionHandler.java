@@ -109,4 +109,22 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
+
+    /**
+     * @ExceptionHandler(RuntimeException.class)
+     * Captura exceções genéricas de falha de negócio ou de sistema não tratadas.
+     * Usado aqui para a falha persistente do Kafka.
+     * * Transforma o erro em um 503 Service Unavailable ou um 500 Internal Server Error,
+     * dependendo da severidade. Vamos usar 503 para indicar indisponibilidade.
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.SERVICE_UNAVAILABLE.value()); // Status 503
+        body.put("error", "Serviço Temporariamente Indisponível");
+        body.put("message", ex.getMessage()); 
+
+        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+    }
 }
