@@ -11,10 +11,13 @@ import br.com.sifat.desafio.product_service.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/categories")
 @Tag(name = "Categorias", description = "Endpoint para listagem de categorias")
 public class CategoryController {

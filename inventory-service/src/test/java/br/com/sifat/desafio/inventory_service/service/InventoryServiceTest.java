@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -13,6 +14,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,9 +23,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import br.com.sifat.desafio.inventory_service.dto.InventoryAdjustRequestDTO;
 import br.com.sifat.desafio.inventory_service.dto.InventoryResponseDTO;
+import br.com.sifat.desafio.inventory_service.event.InventoryUpdatedEventDTO;
+import br.com.sifat.desafio.inventory_service.event.ProductEventDTO;
+import br.com.sifat.desafio.inventory_service.event.ProductEventDTO.EventType;
 import br.com.sifat.desafio.inventory_service.mapper.InventoryMapper;
 import br.com.sifat.desafio.inventory_service.model.Inventory;
 import br.com.sifat.desafio.inventory_service.model.StockMovement;
@@ -43,6 +49,9 @@ public class InventoryServiceTest {
 
     @Mock
     private InventoryMapper mapper;
+
+    @Mock
+    private KafkaTemplate<String, InventoryUpdatedEventDTO> kafkaTemplate;
 
     @InjectMocks
     private InventoryService inventoryService;
@@ -137,6 +146,10 @@ public class InventoryServiceTest {
             verify(stockMovementRepository, times(1)).save(any(StockMovement.class));
             verify(inventoryRepository, times(1)).findById(productId);
             verify(mapper, times(1)).toResponseDTO(updatedInventoryEntity);
+            verify(kafkaTemplate, times(1)).send(
+                    anyString(),
+                    anyString(),
+                    any(InventoryUpdatedEventDTO.class));
         }
 
         @Test
@@ -181,6 +194,104 @@ public class InventoryServiceTest {
             verify(stockMovementRepository, never()).save(any(StockMovement.class));
             verify(inventoryRepository, never()).findById(anyLong());
             verify(mapper, never()).toResponseDTO(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Testes para processProductEvent (Eventos Kafka)")
+    class ProcessProductEventTests {
+        private Inventory inventoryMock = new Inventory();
+        private Long productId = 1L;
+
+        @BeforeEach
+        void setUp() {
+            inventoryMock.setProductId(productId);
+            inventoryMock.setQuantity(0);
+        }
+
+        @Test
+        @DisplayName("Deve criar o registro de Inventário e Movimentação ao receber evento CREATED")
+        void testProcessEvent_WhenTypeIsCREATED_shouldCreateInventory() {
+
+            ProductEventDTO event = new ProductEventDTO();
+            event.setProductId(productId);
+            event.setType(EventType.CREATED);
+
+            when(inventoryRepository.findById(productId)).thenReturn(Optional.empty());
+
+            when(inventoryRepository.save(any(Inventory.class))).thenReturn(inventoryMock);
+
+            inventoryService.processProductEvent(event);
+
+            verify(inventoryRepository, times(1)).save(any(Inventory.class));
+
+            verify(stockMovementRepository, times(1)).save(any(StockMovement.class));
+        }
+
+        @Test
+        @DisplayName("Deve ignorar evento CREATED se o registro de Inventário já existir")
+        void testProcessEvent_WhenTypeIsCREATED_AndInventoryExists_shouldIgnoreSave() {
+
+            ProductEventDTO event = new ProductEventDTO();
+            event.setProductId(productId);
+            event.setType(EventType.CREATED);
+
+            when(inventoryRepository.findById(productId)).thenReturn(Optional.of(inventoryMock));
+
+            inventoryService.processProductEvent(event);
+
+            verify(inventoryRepository, never()).save(any(Inventory.class));
+
+            verify(stockMovementRepository, never()).save(any(StockMovement.class));
+        }
+
+        @Test
+        @DisplayName("Deve realizar o Soft Delete no Inventário ao receber evento DELETED")
+        void testProcessEvent_WhenTypeIsDELETED_shouldCallDeleteById() {
+
+            ProductEventDTO event = new ProductEventDTO();
+            event.setProductId(productId);
+            event.setType(EventType.DELETED);
+
+            when(inventoryRepository.existsById(productId)).thenReturn(true);
+
+            inventoryService.processProductEvent(event);
+
+            verify(inventoryRepository, times(1)).deleteById(productId);
+
+            verify(stockMovementRepository, times(1)).save(any(StockMovement.class));
+        }
+
+        @Test
+        @DisplayName("Deve ignorar evento DELETED se o registro de Inventário não existir")
+        void testProcessEvent_WhenTypeIsDELETED_AndInventoryNotExists_shouldNotAttemptDelete() {
+
+            ProductEventDTO event = new ProductEventDTO();
+            event.setProductId(productId);
+            event.setType(EventType.DELETED);
+
+            when(inventoryRepository.existsById(productId)).thenReturn(false);
+
+            inventoryService.processProductEvent(event);
+
+            verify(inventoryRepository, never()).deleteById(anyLong());
+
+            verify(stockMovementRepository, never()).save(any(StockMovement.class));
+        }
+
+        @Test
+        @DisplayName("Deve ignorar evento UPDATED (não há lógica de estoque para updates)")
+        void testProcessEvent_WhenTypeIsUPDATED_shouldDoNothing() {
+
+            ProductEventDTO event = new ProductEventDTO();
+            event.setProductId(productId);
+            event.setType(EventType.UPDATED);
+
+            inventoryService.processProductEvent(event);
+
+            verify(inventoryRepository, never()).save(any(Inventory.class));
+            verify(inventoryRepository, never()).deleteById(anyLong());
+            verify(stockMovementRepository, never()).save(any(StockMovement.class));
         }
     }
 }

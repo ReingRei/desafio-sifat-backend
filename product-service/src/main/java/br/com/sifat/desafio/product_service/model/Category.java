@@ -16,7 +16,6 @@ public class Category {
     public Category() {
     }
 
-    // Getters e Setters
     public Long getId() {
         return id;
     }

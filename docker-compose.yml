@@ -59,7 +59,7 @@ services:
       SPRING_DATASOURCE_USERNAME: sifat_user
       SPRING_DATASOURCE_PASSWORD: sifat_pass
 
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
 
       SPRING_FLYWAY_ENABLED: "true"
     ports:
@@ -82,7 +82,7 @@ services:
       SPRING_DATASOURCE_USERNAME: sifat_user
       SPRING_DATASOURCE_PASSWORD: sifat_pass
 
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
 
       SPRING_FLYWAY_ENABLED: "true"
     ports:

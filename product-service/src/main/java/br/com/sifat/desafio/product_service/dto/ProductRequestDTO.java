@@ -15,7 +15,7 @@ public class ProductRequestDTO {
     @Schema(description = "Preço do produto (formato decimal)", example = "199.99")
     @NotNull(message = "O preço é obrigatório")
     @Positive(message = "O preço deve ser positivo")
-    private BigDecimal price; // API recebe ex: 19.99
+    private BigDecimal price;
 
     @Schema(description = "URL da imagem do produto", example = "http://example.com/image.png")
     private String imageUrl;
