@@ -21,12 +21,10 @@ public class Inventory {
     private Integer quantity = 0;
 
     @Column(name = "deleted_at")
-    private LocalDateTime deletedAt
-    ;
+    private LocalDateTime deletedAt;
+
     public Inventory() {
     }
-
-    // --- Getters e Setters ---
 
     public Long getProductId() {
         return productId;
