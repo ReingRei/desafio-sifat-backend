@@ -27,6 +27,7 @@ O Back-End é composto por dois microsserviços que interagem de forma independe
 | **Migrações** | Flyway | - | Versionamento e controle do esquema do DB. |
 | **Mensageria** | Apache Kafka | - | Comunicação assíncrona entre os serviços. |
 | **Infra** | Docker & Compose | - | Orquestração do ambiente completo. |
+| **Documentação** | Swagger | - | Documentação e teste de endpoints REST. |
 
 ## 📂 Estrutura do Repositório
 desafio-sifat-backend/

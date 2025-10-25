@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/products")
 @Tag(name = "Produtos", description = "Endpoints para o operações dos produtos")
 public class ProductController {
     private final ProductService productService;

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
-@RequestMapping("/api/v1/categories")
+@RequestMapping("/categories")
 @Tag(name = "Categorias", description = "Endpoint para listagem de categorias")
 public class CategoryController {
     final CategoryService categoryService;
