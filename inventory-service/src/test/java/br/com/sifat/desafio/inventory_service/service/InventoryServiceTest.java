@@ -22,9 +22,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.context.ActiveProfiles;
 
 import br.com.sifat.desafio.inventory_service.dto.InventoryAdjustRequestDTO;
 import br.com.sifat.desafio.inventory_service.dto.InventoryResponseDTO;
@@ -38,7 +38,7 @@ import br.com.sifat.desafio.inventory_service.repository.InventoryRepository;
 import br.com.sifat.desafio.inventory_service.repository.StockMovementRepository;
 import jakarta.persistence.EntityNotFoundException;
 
-@Profile("test")
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes do InventoryService")
 public class InventoryServiceTest {

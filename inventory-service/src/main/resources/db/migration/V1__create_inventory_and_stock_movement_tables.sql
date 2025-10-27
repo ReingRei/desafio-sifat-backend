@@ -9,7 +9,7 @@ CREATE TABLE stock_movement (
     product_id BIGINT NOT NULL,
     quantity_changed INT NOT NULL,
     reason VARCHAR(255),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    INDEX idx_product_id (product_id)
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_product_id ON stock_movement(product_id);
