@@ -68,22 +68,53 @@ O Back-End é composto por dois microsserviços que interagem de forma independe
 
 ## Instruções de Execução
 
-O ambiente completo é orquestrado via Docker Compose.
+Você pode rodar o projeto de duas formas: (A) Completo via Docker Compose ou (B) Microsserviços localmente para Desenvolvimento.
 
 ### Pré-requisitos
 
 * Docker e Docker Compose instalados e em execução.
+* Java JDK 17+ e Maven (ou o `mvnw` wrapper) instalados localmente.
 
-### 1. Setup e Inicialização
+### 1. Inicialização
 
-O comando a seguir constrói as imagens, inicializa a infraestrutura e executa as migrações Flyway.
+### Opção A: Execução Completa via Docker Compose (Produção)
+
+O comando a seguir constrói as imagens, inicializa a infraestrutura, executa as migrações Flyway e inicia os microsserviços.
 
 ```bash
-# Limpa volumes antigos (se necessário) e sobe o ambiente completo
+# Navegue até a raiz do repositório
 docker compose down -v 
 docker compose up --build
 ```
+
+### Opção B: Execução Local para Desenvolvimento (Infra via Docker)
+
+Esta é a forma mais rápida de desenvolver, pois o Spring Boot é iniciado diretamente no seu sistema operacional, conectando-se ao MySQL e Kafka do Docker.
+
+#### 1. Inicialização da Infraestrutura
+
+Suba apenas os contêineres necessários (MySQL, Kafka e Zookeeper):
+
+```bash
+docker compose up -d mysql kafka zookeeper
+```
+
+#### 2. Execução dos Microsserviços (Usando o Perfil local)
+Com a infraestrutura de dados e mensageria ativa, inicie os microsserviços individualmente no perfil local (que contém as configurações de conexão):
+
+Bash
+```bash
+# --- 2.1. Product Service (API em http://localhost:8080) ---
+cd product-service
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+
+# --- 2.2. Inventory Service (API em http://localhost:8081) ---
+cd inventory-service
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+
 **Nota sobre Segurança (CORS):** A anotação @CrossOrigin(origins = "*") foi aplicada nos Controllers para permitir a comunicação com o Frontend rodando em localhost. Em produção, este valor deve ser restrito apenas aos domínios confiáveis do cliente.
+
 
 ### 2. Acesso à Aplicação
 
@@ -96,7 +127,7 @@ Os serviços estarão disponíveis nas seguintes portas:
 
 ---
 
-## 📋 Endpoints e Fluxo de Teste
+## Endpoints e Fluxo de Teste
 
 Todos os endpoints estão protegidos por tratamento de erros centralizado (400, 404, 503) e validação de entrada.
 
@@ -119,7 +150,7 @@ Todos os endpoints estão protegidos por tratamento de erros centralizado (400, 
 
 ---
 
-## ✅ Cobertura de Testes Automatizados
+## Cobertura de Testes Automatizados
 
 O projeto possui alta cobertura de testes, conforme requisito do desafio.
 
