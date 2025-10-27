@@ -7,12 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.context.annotation.Profile;
 
 import br.com.sifat.desafio.inventory_service.dto.InventoryResponseDTO;
 import br.com.sifat.desafio.inventory_service.model.Inventory;
 
-@ActiveProfiles("test")
+@Profile("test")
 public class InventoryMapperTest {
 
     private InventoryMapper inventoryMapper = new InventoryMapper();
