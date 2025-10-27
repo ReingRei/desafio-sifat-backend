@@ -29,8 +29,6 @@ public class StockMovement {
     public StockMovement() {
     }
 
-    // --- Getters e Setters ---
-
     public Long getId() {
         return id;
     }

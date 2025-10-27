@@ -4,12 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+
 import java.math.BigDecimal;
 
 public class ProductRequestDTO {
 
     @Schema(description = "Nome do produto", example = "Teclado Mecânico")
     @NotBlank(message = "O nome é obrigatório")
+    @Size(max = 255, message = "O nome não pode exceder 255 caracteres")
     private String name;
 
     @Schema(description = "Preço do produto (formato decimal)", example = "199.99")
@@ -18,6 +21,7 @@ public class ProductRequestDTO {
     private BigDecimal price;
 
     @Schema(description = "URL da imagem do produto", example = "http://example.com/image.png")
+    @Size(max = 512, message = "A URL da imagem não pode exceder 512 caracteres")
     private String imageUrl;
 
     @Schema(description = "ID da Categoria do produto", example = "1")
