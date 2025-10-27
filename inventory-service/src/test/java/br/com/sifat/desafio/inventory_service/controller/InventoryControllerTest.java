@@ -3,6 +3,7 @@ package br.com.sifat.desafio.inventory_service.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +22,7 @@ import br.com.sifat.desafio.inventory_service.service.InventoryService;
 import jakarta.persistence.EntityNotFoundException;
 import java.lang.IllegalArgumentException;
 
+@ActiveProfiles("test")
 @WebMvcTest(InventoryController.class)
 @DisplayName("Testes do InventoryController")
 public class InventoryControllerTest {
